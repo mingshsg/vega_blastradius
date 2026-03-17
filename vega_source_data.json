@@ -1,0 +1,156 @@
+GET poclinks/_search
+
+{
+  "took": 0,
+  "timed_out": false,
+  "_shards": {
+    "total": 1,
+    "successful": 1,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": {
+      "value": 6,
+      "relation": "eq"
+    },
+    "max_score": 1,
+    "hits": [
+      {
+        "_index": "poclinks",
+        "_id": "TfKxCJkBPW84zecYhSqH",
+        "_score": 1,
+        "_source": {
+          "update_time": "2025-09-02T04:31:15.847691686Z",
+          "source": "ip-10-110-0-174.ap-southeast-1.compute.internal",
+          "value": "db connection",
+          "target": "ip-10-110-0-138.ap-southeast-1.compute.internal"
+        }
+      },
+      {
+        "_index": "poclinks",
+        "_id": "ECiwCZkBQSnOJh7DNF15",
+        "_score": 1,
+        "_source": {
+          "update_time": "2025-09-02T09:09:26.776988019Z",
+          "source": "ip-10-110-0-174.ap-southeast-1.compute.internal",
+          "value": "network connection",
+          "target": "ap-sg-swh-001"
+        }
+      },
+      {
+        "_index": "poclinks",
+        "_id": "ESiwCZkBQSnOJh7DNF15",
+        "_score": 1,
+        "_source": {
+          "update_time": "2025-09-02T09:09:26.776995512Z",
+          "source": "ip-10-110-0-138.ap-southeast-1.compute.internal",
+          "value": "network connection",
+          "target": "ap-sg-swh-001"
+        }
+      },
+      {
+        "_index": "poclinks",
+        "_id": "csDvCZkBe5QoaBm6sdqX",
+        "_score": 1,
+        "_source": {
+          "update_time": "2025-09-02T10:18:47.575406949Z",
+          "source": "ap-sg-swh-001",
+          "value": "network connection",
+          "target": "ap-sg-fwl-001"
+        }
+      },
+      {
+        "_index": "poclinks",
+        "_id": "6SfkH5kBnl6oQVKdPPzv",
+        "_score": 1,
+        "_source": {
+          "update_time": "2025-09-06T16:37:55.567671568Z",
+          "source": "abc",
+          "value": "noneed",
+          "target": "xyz"
+        }
+      },
+      {
+        "_index": "poclinks",
+        "_id": "hLdUMpoBa-4MhTb_EYUu",
+        "_score": 1,
+        "_source": {
+          "update_time": "2025-10-29T23:36:01.581817451Z",
+          "source": "ip-10-110-0-138.ap-southeast-1.compute.internal",
+          "value": "web connection",
+          "target": "ip-10-110-0-174.ap-southeast-1.compute.internal"
+        }
+      }
+    ]
+  }
+}
+
+GET pocnodes/_search
+{
+  "took": 0,
+  "timed_out": false,
+  "_shards": {
+    "total": 1,
+    "successful": 1,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": {
+      "value": 4,
+      "relation": "eq"
+    },
+    "max_score": 1,
+    "hits": [
+      {
+        "_index": "pocnodes",
+        "_id": "DyiwCZkBQSnOJh7DNF15",
+        "_score": 1,
+        "_source": {
+          "update_time": "2025-09-05T13:23:49.871946664Z",
+          "name": "ap-sg-fwl-001",
+          "monitor": "http://47.129.139.223:8000",
+          "group": "firewall",
+          "status": "healthy"
+        }
+      },
+      {
+        "_index": "pocnodes",
+        "_id": "DiiwCZkBQSnOJh7DNF15",
+        "_score": 1,
+        "_source": {
+          "update_time": "2025-09-05T13:25:04.106757483Z",
+          "name": "ap-sg-swh-001",
+          "monitor": "http://47.129.139.223:8000",
+          "group": "switch",
+          "status": "healthy"
+        }
+      },
+      {
+        "_index": "pocnodes",
+        "_id": "S_KxCJkBPW84zecYhSqH",
+        "_score": 1,
+        "_source": {
+          "update_time": "2025-09-05T13:22:37.342310062Z",
+          "name": "ip-10-110-0-174.ap-southeast-1.compute.internal",
+          "monitor": "http://10.110.0.174:8000",
+          "group": "web",
+          "status": "healthy"
+        }
+      },
+      {
+        "_index": "pocnodes",
+        "_id": "TPKxCJkBPW84zecYhSqH",
+        "_score": 1,
+        "_source": {
+          "update_time": "2025-09-05T13:25:42.205647137Z",
+          "name": "ip-10-110-0-138.ap-southeast-1.compute.internal",
+          "monitor": "mysql_liveness",
+          "group": "db",
+          "status": "healthy"
+        }
+      }
+    ]
+  }
+}
