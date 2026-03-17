@@ -1,0 +1,704 @@
+{
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "description": "Demo",
+  "padding": {"left": 0, "right": 0, "top": 0, "bottom": 0},
+  "autosize": {"type": "fit", "contains": "padding"},
+  "background": "#ffffff",
+  "signals": [
+    {"name": "xrange", "update": "[0, width]"},
+    {"name": "yrange", "update": "[height, 0]"},
+    {"name": "xext", "update": "[0, width]"},
+    {"name": "yext", "update": "[height, 0]"},
+    {
+      "name": "down",
+      "value": null,
+      "on": [
+        {"events": "mouseup,touchend", "update": "null"},
+        {"events": "mousedown, touchstart", "update": "xy()"},
+        {"events": "symbol:mousedown, symbol:touchstart", "update": "null"}
+      ]
+    },
+    {
+      "name": "xcur",
+      "value": null,
+      "on": [{"events": "mousedown, touchstart, touchend", "update": "xdom"}]
+    },
+    {
+      "name": "ycur",
+      "value": null,
+      "on": [{"events": "mousedown, touchstart, touchend", "update": "ydom"}]
+    },
+    {
+      "name": "delta",
+      "value": [0, 0],
+      "on": [
+        {
+          "events": [
+            {
+              "source": "window",
+              "type": "mousemove",
+              "consume": true,
+              "between": [
+                {"type": "mousedown"},
+                {"source": "window", "type": "mouseup"}
+              ]
+            },
+            {
+              "type": "touchmove",
+              "consume": true,
+              "filter": "event.touches.length === 1"
+            }
+          ],
+          "update": "down ? [down[0]-x(), y()-down[1]] : [0,0]"
+        }
+      ]
+    },
+    {
+      "name": "anchor",
+      "value": [0, 0],
+      "on": [
+        {
+          "events": "wheel",
+          "update": "[invert('xscale', x()), invert('yscale', y())]"
+        },
+        {
+          "events": {
+            "type": "touchstart",
+            "filter": "event.touches.length===2"
+          },
+          "update": "[(xdom[0] + xdom[1]) / 2, (ydom[0] + ydom[1]) / 2]"
+        }
+      ]
+    },
+    {
+      "name": "zoom",
+      "value": 1,
+      "on": [
+        {
+          "events": "wheel!",
+          "force": true,
+          "update": "pow(1.001, event.deltaY * pow(16, event.deltaMode))"
+        },
+        {
+          "events": {"signal": "dist2"},
+          "force": true,
+          "update": "dist1 / dist2"
+        },
+        {"events": [{"source": "view", "type": "dblclick"}], "update": "1"}
+      ]
+    },
+    {
+      "name": "dist1",
+      "value": 0,
+      "on": [
+        {
+          "events": {
+            "type": "touchstart",
+            "filter": "event.touches.length===2"
+          },
+          "update": "pinchDistance(event)"
+        },
+        {"events": {"signal": "dist2"}, "update": "dist2"}
+      ]
+    },
+    {
+      "name": "dist2",
+      "value": 0,
+      "on": [
+        {
+          "events": {
+            "type": "touchmove",
+            "consume": true,
+            "filter": "event.touches.length===2"
+          },
+          "update": "pinchDistance(event)"
+        }
+      ]
+    },
+    {
+      "name": "xdom",
+      "update": "xext",
+      "on": [
+        {
+          "events": {"signal": "delta"},
+          "update": "[xcur[0] + span(xcur) * delta[0] / width, xcur[1] + span(xcur) * delta[0] / width]"
+        },
+        {
+          "events": {"signal": "zoom"},
+          "update": "[anchor[0] + (xdom[0] - anchor[0]) * zoom, anchor[0] + (xdom[1] - anchor[0]) * zoom]"
+        },
+        {"events": [{"source": "view", "type": "dblclick"}], "update": "xrange"}
+      ]
+    },
+    {
+      "name": "ydom",
+      "update": "yext",
+      "on": [
+        {
+          "events": {"signal": "delta"},
+          "update": "[ycur[0] + span(ycur) * delta[1] / height, ycur[1] + span(ycur) * delta[1] / height]"
+        },
+        {
+          "events": {"signal": "zoom"},
+          "update": "[anchor[1] + (ydom[0] - anchor[1]) * zoom, anchor[1] + (ydom[1] - anchor[1]) * zoom]"
+        },
+        {"events": [{"source": "view", "type": "dblclick"}], "update": "yrange"}
+      ]
+    },
+    {"name": "size", "update": "clamp(20 / span(xdom), 1, 1000)"},
+    {
+      "name": "cx",
+      "update": "width / 2",
+      "on": [
+        {
+          "events": "[symbol:mousedown, window:mouseup] > window:mousemove",
+          "update": " cx==width/2?cx+0.001:width/2"
+        }
+      ]
+    },
+    {"name": "cy", "update": "height / 2"},
+    {
+      "name": "nodeRadiusKey",
+      "description": "q=increase size, a=decrease size",
+      "value": 8,
+      "on": [
+        {
+          "events": "window:keypress",
+          "update": "event.key=='a'&&nodeRadiusKey>1?nodeRadiusKey-1:event.key=='q'?nodeRadiusKey+1:nodeRadiusKey"
+        }
+      ]
+    },
+    {
+      "name": "labelMode",
+      "value": "inline",
+      "bind": {
+        "input": "radio",
+        "name": "label position",
+        "options": ["inline", "below", "hidden"]
+      }
+    },
+    {
+      "name": "isInteractive",
+      "value": false,
+      "bind": {"input": "checkbox", "name": "Click to Open"}
+    },
+    {
+      "name": "isServer",
+      "value": false,
+      "bind": {"input": "checkbox", "name": "Server Only"}
+    },
+        {
+      "name": "isReverse",
+      "value": false,
+      "bind": {"input": "checkbox", "name": "Reverse"}
+    },
+    {
+      "name": "nodeRadius",
+      "value": 48,
+      "bind": {
+        "input": "range",
+        "name": "node radius",
+        "min": 1,
+        "max": 100,
+        "step": 1
+      },
+      "on": [{"events": {"signal": "nodeRadiusKey"}, "update": "nodeRadiusKey"}]
+    },
+    {
+      "name": "nodeCharge",
+      "value": -30,
+      "bind": {"input": "range", "min": -100, "max": 10, "step": 1}
+    },
+    {
+      "name": "linkDistance",
+      "value": 40,
+      "bind": {"input": "range", "min": 5, "max": 300, "step": 1}
+    },
+    {
+      "name": "strokeWidth",
+      "value": 4,
+      "bind": {"input": "range", "min": 0, "max": 10, "step": 0.5}
+    },
+    {
+      "name": "arrowSize",
+      "value": 0,
+      "bind": {"input": "range", "min": 0, "max": 600, "step": 30}
+    },
+    {
+      "description": "State variable for active node fix status.",
+      "name": "fix",
+      "value": false,
+      "on": [
+        {
+          "events": "symbol:mouseout[!event.buttons], window:mouseup",
+          "update": "false"
+        },
+        {"events": "symbol:mouseover", "update": "fix || true", "force": true},
+        {
+          "events": "[symbol:mousedown, window:mouseup] > window:mousemove!",
+          "update": "xy()",
+          "force": true
+        }
+      ]
+    },
+    {
+      "description": "Graph node most recently interacted with.",
+      "name": "node",
+      "value": null,
+      "on": [
+        {
+          "events": "symbol:mouseover",
+          "update": "fix === true ? datum.index : node"
+        }
+      ]
+    },
+    {
+      "name": "nodeHover",
+      "value": {"id": null, "connections": []},
+      "on": [
+        {
+          "events": "symbol:mouseover",
+          "update": "{'id':datum.index, 'connections':split(datum.sources+','+datum.targets,',')}"
+        },
+        {"events": "symbol:mouseout", "update": "{'id':null, 'connections':[]}"}
+      ]
+    },
+    {
+      "description": "Flag to restart Force simulation upon data changes.",
+      "name": "restart",
+      "value": false,
+      "on": [{"events": {"signal": "fix"}, "update": "fix && fix.length"}]
+    },
+    {
+      "name": "flowOffset",
+      "value": 0,
+      "on": [
+        {
+          "events": "timer",
+          "update": "(now() / 50) % 20"
+        }
+      ]
+    }
+  ],
+  "data": [
+    {
+      "name": "link-data-raw",
+      "url": {
+        "index": "poclinks",
+        "body": {
+          "query": {"match_all": {}},
+          "size": 1000,
+          "_source": ["source", "value", "target"]
+        }
+      },
+      "format": {"type": "json", "property": "hits.hits"},
+      "transform": [
+        {
+          "type": "project",
+          "fields": ["_source.source", "_source.value", "_source.target"],
+          "as": ["source", "value", "target"]
+        }
+      ]
+    },
+    {
+      "name": "node-data-raw",
+      "url": {
+        "index": "pocnodes",
+        "body": {
+          "query": {"match_all": {}},
+          "size": 1000,
+          "_source": ["name", "group", "monitor"]
+        }
+      },
+      "format": {"type": "json", "property": "hits.hits"},
+      "transform": [
+        {
+          "type": "project",
+          "fields": ["_source.name", "_source.group", "_source.monitor"],
+          "as": ["name", "group", "monitor"]
+        },
+        {
+          "type": "filter",
+          "expr": "!isServer || (datum.group=='web' || datum.group=='db')"
+        }
+      ]
+    },
+    {
+      "name": "link-data",
+      "source": "link-data-raw",
+      "transform": [
+        {
+          "type": "lookup",
+          "from": "node-data-raw",
+          "key": "name",
+          "fields": ["source"],
+          "values": ["name"],
+          "as": ["_src"],
+          "default": null
+        },
+        {
+          "type": "lookup",
+          "from": "node-data-raw",
+          "key": "name",
+          "fields": ["target"],
+          "values": ["name"],
+          "as": ["_tgt"],
+          "default": null
+        },
+        {"type": "filter", "expr": "datum._src != null && datum._tgt != null"},
+        {
+          "type": "project",
+          "fields": ["source", "target", "value"],
+          "as": ["source", "target", "value"]
+        }
+      ]
+    },
+    {
+      "name": "source-connections",
+      "source": "link-data-raw",
+      "transform": [
+        {
+          "type": "aggregate",
+          "groupby": ["source"],
+          "ops": ["values"],
+          "fields": ["target"],
+          "as": ["connections"]
+        },
+        {
+          "type": "formula",
+          "as": "targets",
+          "expr": "pluck(datum.connections, 'target')"
+        }
+      ]
+    },
+    {
+      "name": "target-connections",
+      "source": "link-data-raw",
+      "transform": [
+        {
+          "type": "aggregate",
+          "groupby": ["target"],
+          "ops": ["values"],
+          "fields": ["source"],
+          "as": ["connections"]
+        },
+        {
+          "type": "formula",
+          "as": "sources",
+          "expr": "pluck(datum.connections, 'source')"
+        }
+      ]
+    },
+    {
+      "name": "monitor-status-raw",
+      "url": {
+        "index": "synthetics-*-*",
+        "body": {
+          "size": 1000,
+          "_source": ["@timestamp", "monitor.name", "state.status"],
+          "query": {
+            "bool": {
+              "filter": [
+                {"range": {"@timestamp": {"%timefilter%": true}}},
+                {"exists": {"field": "monitor.name"}},
+                {"exists": {"field": "state.status"}}
+              ]
+            }
+          },
+          "sort": [{"@timestamp": {"order": "desc"}}],
+          "collapse": {"field": "monitor.name"}
+        }
+      },
+      "format": {"type": "json", "property": "hits.hits"},
+      "transform": [
+        {
+          "type": "project",
+          "fields": [
+            "_source.monitor.name",
+            "_source.state.status",
+            "_source.@timestamp"
+          ],
+          "as": ["monitor", "status", "@timestamp"]
+        }
+      ]
+    },
+    {
+      "name": "node-data",
+      "source": "node-data-raw",
+      "transform": [
+        {
+          "type": "lookup",
+          "from": "source-connections",
+          "key": "source",
+          "fields": ["name"],
+          "values": ["targets"],
+          "as": ["targets"],
+          "default": [""]
+        },
+        {
+          "type": "lookup",
+          "from": "target-connections",
+          "key": "target",
+          "fields": ["name"],
+          "values": ["sources"],
+          "as": ["sources"],
+          "default": [""]
+        },
+        {
+          "type": "lookup",
+          "from": "monitor-status-raw",
+          "key": "monitor",
+          "fields": ["monitor"],
+          "values": ["status", "@timestamp"],
+          "as": ["status", "timestamp"],
+          "default": "unknown"
+        },
+        {
+          "type": "force",
+          "iterations": 300,
+          "restart": {"signal": "restart"},
+          "signal": "force",
+          "forces": [
+            {"force": "center", "x": {"signal": "cx"}, "y": {"signal": "cy"}},
+            {
+              "force": "collide",
+              "radius": {"signal": "sqrt(8 * nodeRadius * nodeRadius)"},
+              "iterations": 1,
+              "strength": 0.7
+            },
+            {"force": "nbody", "strength": {"signal": "nodeCharge"}},
+            {
+              "force": "link",
+              "links": "link-data",
+              "distance": {"signal": "linkDistance"},
+              "id": "name"
+            }
+          ]
+        },
+        {
+          "type": "formula",
+          "as": "fx",
+          "expr": "fix[0]!=null && node==datum.index ?invert('xscale',fix[0]):null"
+        },
+        {
+          "type": "formula",
+          "as": "fy",
+          "expr": "fix[1]!=null && node==datum.index ?invert('yscale',fix[1]):null"
+        }
+      ]
+    }
+  ],
+  "scales": [
+    {
+      "name": "color",
+      "type": "ordinal",
+      "domain": {"data": "node-data", "field": "group"},
+      "range": [
+        "#4682b4",
+        "#4666b4",
+        "#46b494",
+        "#b46746",
+        "#b44662",
+        "#a44fa3"
+      ]
+    },
+    {
+      "name": "color-outter",
+      "type": "ordinal",
+      "domain": {"data": "node-data", "field": "group"},
+      "range": [
+        "#004fa3",
+        "#4600b4",
+        "#466600",
+        "#00b494",
+        "#b40046",
+        "#b44600"
+      ]
+    },
+    {
+      "name": "xscale",
+      "zero": false,
+      "domain": {"signal": "xdom"},
+      "range": {"signal": "xrange"}
+    },
+    {
+      "name": "yscale",
+      "zero": false,
+      "domain": {"signal": "ydom"},
+      "range": {"signal": "yrange"}
+    }
+  ],
+  "marks": [
+    {
+      "type": "path",
+      "name": "links",
+      "from": {"data": "link-data"},
+      "interactive": false,
+      "encode": {
+        "update": {
+          "stroke": {
+            "signal": "datum.source.index!=nodeHover.id && datum.target.index!=nodeHover.id ? '#929399':merge(hsl(scale('color', datum.source.group)), {l:0.64})"
+          },
+          "strokeWidth": {
+            "signal": "datum.source.index!=nodeHover.id && datum.target.index!=nodeHover.id ? strokeWidth/2 :strokeWidth*2"
+          },
+          "strokeDash": {"value": [10, 10]},
+          "strokeDashOffset": {"signal": "isReverse ? flowOffset : -flowOffset"}
+        }
+      },
+      "transform": [
+        {
+          "type": "linkpath",
+          "require": {"signal": "force"},
+          "shape": "curve",
+          "sourceX": {"expr": "scale('xscale', datum.datum.source.x)"},
+          "sourceY": {"expr": "scale('yscale', datum.datum.source.y)"},
+          "targetX": {"expr": "scale('xscale', datum.datum.target.x)"},
+          "targetY": {"expr": "scale('yscale', datum.datum.target.y)"}
+        },
+        {
+          "type": "formula",
+          "expr": "atan2(datum.datum.target.y - datum.datum.source.y,datum.datum.source.x - datum.datum.target.x)",
+          "as": "angle1"
+        },
+        {
+          "type": "formula",
+          "expr": "(datum.angle1>=0?datum.angle1:(2*PI + datum.angle1)) * (360 / (2*PI))",
+          "as": "angle2"
+        },
+        {
+          "type": "formula",
+          "expr": "(360-datum.angle2)*(PI/180)",
+          "as": "angle3"
+        },
+        {
+          "type": "formula",
+          "expr": "(cos(datum.angle3)*(nodeRadius+5))+(scale('xscale',datum.datum.target.x))",
+          "as": "arrowX"
+        },
+        {
+          "type": "formula",
+          "expr": "(sin(datum.angle3)*(nodeRadius+5))+(scale('yscale',datum.datum.target.y))",
+          "as": "arrowY"
+        }
+      ]
+    },
+    {
+      "type": "symbol",
+      "name": "arrows",
+      "zindex": 3,
+      "from": {"data": "links"},
+      "encode": {
+        "update": {
+          "shape": {"value": "triangle"},
+          "angle": {"signal": "-datum.angle2-90"},
+          "x": {"signal": "datum.arrowX"},
+          "y": {"signal": "datum.arrowY"},
+          "text": {"signal": "'▲'"},
+          "fill": {
+            "signal": "strokeWidth === 0 ? 0 : datum.datum.source.index!=nodeHover.id && datum.datum.target.index!=nodeHover.id ? '#929399':merge(hsl(scale('color', datum.datum.source.group)), {l:0.34})"
+          },
+          "size": {"signal": "nodeRadius==1?0:arrowSize*2"}
+        }
+      }
+    },
+    {
+      "name": "nodes",
+      "type": "symbol",
+      "zindex": 1,
+      "from": {"data": "node-data"},
+      "encode": {
+        "update": {
+          "shape": {
+            "signal": "datum.group === 'web' || datum.group === 'db' ? 'circle': 'M0,.5L.6,.8L.5,.1L1,-.3L.3,-.4L0,-1L-.3,-.4L-1,-.3L-.5,.1L-.6,.8L0,.5Z' "
+          },
+          "opacity": {"value": 1},
+          "fill": {
+            "signal": "nodeHover.id===datum.index || indexof(nodeHover.connections, datum.name)>-1 ? '#0077cc': merge(hsl('#0077cc'), {l:0.64})"
+          },
+          "stroke": {
+            "signal": "merge(hsl(datum.group === 'switch' || datum.group === 'firewall' ? '#ff957d': '#0077cc' ), {l:0.76})"
+          },
+          "strokeWidth": {"value": 3},
+          "strokeOpacity": {"value": 1},
+          "size": {"signal": "4 * nodeRadius * nodeRadius"},
+          "cursor": {"value": "pointer"},
+          "x": {
+            "signal": "fix[0]!=null && node===datum.index ?fix[0]:scale('xscale', datum.x)"
+          },
+          "y": {
+            "signal": "fix[1]!=null && node===datum.index ?fix[1]:scale('yscale', datum.y)"
+          },
+          "href": {
+            "signal": "isInteractive? ('https://dpoc.kb.ap-southeast-1.aws.found.io/s/all/app/metrics/detail/host/' + datum.name): null"
+          },
+          "target": {"value": "_blank"}
+        },
+        "hover": {
+          "tooltip": {
+            "signal": "merge(labelMode === 'below' ? {} : {'name -':datum.name},{'group -':datum.group,'status -':datum.status, 'updated -':datum.timestamp})"
+          }
+        }
+      }
+    },
+    {
+      "name": "nodes-outter",
+      "type": "symbol",
+      "zindex": 1,
+      "from": {"data": "node-data"},
+      "encode": {
+        "update": {
+          "shape": {"signal": "'circle'"},
+          "opacity": {
+            "signal": "datum.group === 'Reporting' || datum.group === 'Audit' ? 0 : 1"
+          },
+          "fill": "none",
+          "stroke": {
+            "signal": "merge(hsl(datum.status === 'up' ? '#00bfb3': '#f04e98'), {l:0.64}) "
+          },
+          "strokeWidth": {"signal": "strokeWidth"},
+          "strokeOpacity": {"value": 1},
+          "size": {"signal": "8 * nodeRadius * nodeRadius"},
+          "cursor": {"value": "hand"},
+          "x": {
+            "signal": "fix[0]!=null && node===datum.index ?fix[0]:scale('xscale', datum.x)"
+          },
+          "y": {
+            "signal": "fix[1]!=null && node===datum.index ?fix[1]:scale('yscale', datum.y)"
+          }
+        },
+        "hover": {"tooltip": {"signal": "datum.name"}}
+      }
+    },
+    {
+      "type": "text",
+      "name": "labels",
+      "from": {"data": "nodes"},
+      "zindex": 2,
+      "interactive": false,
+      "enter": {},
+      "encode": {
+        "update": {
+          "fill": {
+            "signal": "datum.datum.group === 'Customer' ? 'black': datum.datum.group === 'Reporting' ? 'blue' : 'black'"
+          },
+          "fillOpacity": {"signal": "labelMode === 'hidden' ? 0 : 1"},
+          "y": {
+            "signal": "labelMode === 'inline'? datum.y : (datum.y + nodeRadius + 2)"
+          },
+          "x": {"field": "x"},
+          "text": {"field": "datum.name"},
+          "align": {"value": "center"},
+          "fontSize": {
+            "signal": "(nodeRadius / 2) < 10 ? 10 : (nodeRadius / 2)"
+          },
+          "baseline": {"value": "middle"},
+          "limit": {
+            "signal": "labelMode === 'inline'?clamp(sqrt(4 * nodeRadius * nodeRadius)-7,1,1000): 1100"
+          },
+          "ellipsis": {"value": " "}
+        }
+      }
+    }
+  ]
+}
